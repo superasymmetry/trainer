@@ -203,3 +203,39 @@ helm-lint: ## Run Helm chart lint test.
 .PHONY: helm-docs
 helm-docs: helm-docs-plugin ## Generates markdown documentation for helm charts from requirements and values files.
 	$(HELM_DOCS) --sort-values-order=file
+
+##@ Install criu dependencies
+.PHONY: install-criu-deps
+install-criu-deps:
+    sudo apt-get update && sudo apt-get install -y \
+        build-essential \
+        protobuf-c-compiler \
+        libprotobuf-c-dev \
+        protobuf-compiler \
+        libprotobuf-dev \
+        gcc \
+        gcc-multilib \
+        pkg-config \
+        git \
+        make \
+        libnl-3-dev \
+        libcap-dev \
+        libaio-dev \
+        libnet1-dev \
+        python3-protobuf
+
+##@ CRIU-COORDINATOR
+CRIU_COORDINATOR_VERSION ?= v0.1.0
+CRIU_COORDINATOR_DIR ?= $(PROJECT_DIR)/criu-coordinator
+.PHONY: install-criu
+install-criu:
+	@if [ ! -d "$(CRIU_COORDINATOR_DIR)" ]; then \
+        mkdir -p $(dir $(CRIU_COORDINATOR_DIR)); \
+        git clone https://github.com/checkpoint-restore/criu-coordinator.git $(CRIU_COORDINATOR_DIR); \
+    fi
+	cd $(CRIU_COORDINATOR_DIR) && \
+	git checkout $(CRIU_COORDINATOR_VERSION) && \
+	make ARCH=$(shell go env GOARCH) clean && \
+	make ARCH=$(shell go env GOARCH) -j$(nproc) criu-coordinator && \
+	make ARCH=$(shell go env GOARCH) install && \
+	sudo criu check --all
