@@ -132,6 +132,13 @@ type TrainJobSpec struct {
 	// +kubebuilder:validation:XValidation:rule="self in ['trainer.kubeflow.org/trainjob-controller', 'kueue.x-k8s.io/multikueue']", message="ManagedBy must be trainer.kubeflow.org/trainjob-controller or kueue.x-k8s.io/multikueue if set"
 	// +kubebuilder:validation:XValidation:rule="self == oldSelf", message="ManagedBy value is immutable"
 	ManagedBy *string `json:"managedBy,omitempty"`
+
+	CRIU *CRIUConfig `json:"criu,omitempty"`
+}
+
+type CRIUConfig struct{
+	Enabled bool `json:"enabled,omitempty"`
+	CheckpointPath string `json:"checkpointPath,omitempty"`
 }
 
 // RuntimeRef represents the reference to the existing training runtime.
